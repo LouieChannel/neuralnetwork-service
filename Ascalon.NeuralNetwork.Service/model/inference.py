@@ -11,17 +11,6 @@ from kafka import KafkaConsumer, KafkaProducer
 from flask import Flask
 
 
-class Result:
-
-    def __init__(self, result):
-        self.__x = result
-
-    def result(self):
-        return self.__x
-
-    def set_result(self, result):
-        self.__x = result
-
 app = Flask(__name__)
 
 filename = 'weights-ep2076-val_loss0.2518.hdf5'
@@ -50,9 +39,9 @@ def predict(x):
 
 def KafkaConsumer():
     while True:
-        tasks = []
-        label = 0
         for message in consumer:
+            tasks = []
+            label = 0
             for data in message.value:
                 task = [float(data['Gfx']), float(data['Gfy']), float(data['Gfz']),
                         float(data['Wx']), float(data['Wy']), float(data['Speed']),
@@ -63,9 +52,8 @@ def KafkaConsumer():
             for element in result:
                 element[:] = element - element.mean(axis=0)
             something = predict(result)
-            result = Result(something[0])
-            print('{} = {}'.format(something[0], label))
-            data = {'result': int(something[0]), 'label': label}
+            print('{} = {}'.format(something[0]+1, label))
+            data = {'result': int(something[0]+1), 'label': label}
             producer.send('client_service_data', value=data)
 
 
