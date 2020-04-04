@@ -19,13 +19,13 @@ net = create_model(training=False)
 
 net.load_weights(f'/tmp/src/Ascalon.NeuralNetwork.Service/ckpt/{filename}')
 
-producer = KafkaProducer(bootstrap_servers=['localhost:29092'],
+producer = KafkaProducer(bootstrap_servers=['kafka:29092'],
                          value_serializer=lambda x:
                          dumps(x).encode('utf-8'))
 
 consumer = KafkaConsumer(
             'neuralnetwork_data',
-            bootstrap_servers=['localhost:29092'],
+            bootstrap_servers=['kafka:29092'],
             auto_offset_reset='earliest',
             enable_auto_commit=True,
             group_id='NeuralNetworkService',
@@ -42,18 +42,19 @@ def KafkaConsumer():
         for message in consumer:
             tasks = []
             label = 0
+            id = 0
             for data in message.value:
                 task = [float(data['Gfx']), float(data['Gfy']), float(data['Gfz']),
                         float(data['Wx']), float(data['Wy']), float(data['Speed']),
                         float(data['Wz'])]
                 label = float(data['Label'])
+                id = data['Id']
                 tasks.append(task)
             result = np.reshape(tasks, (-1, 50, 7))
             for element in result:
                 element[:] = element - element.mean(axis=0)
             something = predict(result)
-            print('{} = {}'.format(something[0]+1, label))
-            data = {'result': int(something[0]+1), 'label': label}
+            data = {'result': int(something[0]+1), 'label': label, 'id': id}
             producer.send('client_service_data', value=data)
 
 
