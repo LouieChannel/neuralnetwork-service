@@ -19,13 +19,13 @@ net = create_model(training=False)
 
 net.load_weights(f'/tmp/src/Ascalon.NeuralNetwork.Service/ckpt/{filename}')
 
-producer = KafkaProducer(bootstrap_servers=['kafka:29092'],
+producer = KafkaProducer(bootstrap_servers=['kafka:9092'],
                          value_serializer=lambda x:
                          dumps(x).encode('utf-8'))
 
 consumer = KafkaConsumer(
             'neuralnetwork_data',
-            bootstrap_servers=['kafka:29092'],
+            bootstrap_servers=['kafka:9092'],
             auto_offset_reset='earliest',
             enable_auto_commit=True,
             group_id='NeuralNetworkService',
