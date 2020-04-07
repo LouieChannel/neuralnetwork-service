@@ -28,6 +28,7 @@ consumer = KafkaConsumer(
             bootstrap_servers=['kafka:9092'],
             auto_offset_reset='earliest',
             enable_auto_commit=True,
+            partition_assignment_strategy=RoundRobinPartitionAssignor,
             group_id='NeuralNetworkService',
             value_deserializer=lambda x: loads(x.decode('utf-8')))
 
