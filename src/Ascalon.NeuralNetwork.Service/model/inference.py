@@ -8,6 +8,8 @@ from json import loads, dumps
 
 from kafka import KafkaConsumer, KafkaProducer
 
+from kafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssignor
+
 from flask import Flask
 
 
@@ -19,22 +21,22 @@ net = create_model(training=False)
 
 net.load_weights(f'/tmp/src/Ascalon.NeuralNetwork.Service/ckpt/{filename}')
 
-producer = KafkaProducer(bootstrap_servers=['kafka:9092'],
+producer = KafkaProducer(bootstrap_servers=['35.189.215.83:9092'],
                          value_serializer=lambda x:
                          dumps(x).encode('utf-8'))
 
 consumer = KafkaConsumer(
             'neuralnetwork_data',
-            bootstrap_servers=['kafka:9092'],
+            bootstrap_servers=['35.189.215.83:9092'],
             auto_offset_reset='earliest',
             enable_auto_commit=True,
-            partition_assignment_strategy=RoundRobinPartitionAssignor,
+            partition_assignment_strategy=[RoundRobinPartitionAssignor],
             group_id='NeuralNetworkService',
             value_deserializer=lambda x: loads(x.decode('utf-8')))
 
 def predict(x):
     pred = net.predict(x)
-    label = np.argmax(pred, axis=1)  # [0]
+    label = np.argmax(pred, axis=1)
     return label
 
 
